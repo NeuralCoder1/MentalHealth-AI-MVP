@@ -1,10 +1,13 @@
 # app.py
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-import utils
-import feature_audio
+
+from mental_health_mvp import utils
+from mental_health_mvp import feature_audio
+
 import os
 import uuid
+
 
 app = Flask(__name__, static_url_path="")
 CORS(app)
