@@ -1,16 +1,20 @@
---index-url https://download.pytorch.org/whl/cpu
+--extra-index-url https://download.pytorch.org/whl/cpu
 
 torch
 torchvision
 torchaudio
+
 transformers
-safetensors
-pandas
-numpy
 datasets
+safetensors
+
+numpy
+pandas
 scikit-learn
+
 flask
 flask-cors
+gunicorn
+
 librosa
 soundfile
-gunicorn
