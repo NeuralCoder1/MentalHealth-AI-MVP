@@ -1,34 +1,35 @@
 # utils.py
 import json
 import numpy as np
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
+from pathlib import Path
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from mental_health_mvp import feature_audio
 
 # =====================================================
-# LOAD MODEL & LABEL MAP
+# PATH RESOLUTION (PRODUCTION SAFE)
 # =====================================================
 
-MODEL_PATH = "./text_model"
-LABEL_MAP_PATH = "./text_model_label_mapping.json"
+BASE_DIR = Path(__file__).resolve().parent
+MODEL_DIR = BASE_DIR / "text_model"
+LABEL_MAP_PATH = BASE_DIR / "text_model_label_mapping.json"
 
-# Load tokenizer
-tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
+# =====================================================
+# LOAD MODEL & LABEL MAP (ONCE)
+# =====================================================
 
-# Load model from safetensors format
+tokenizer = AutoTokenizer.from_pretrained(str(MODEL_DIR), local_files_only=True)
+
 model = AutoModelForSequenceClassification.from_pretrained(
-    MODEL_PATH,
+    str(MODEL_DIR),
     local_files_only=True,
 )
 model.eval()
 
-# Load label mapping
 with open(LABEL_MAP_PATH, "r") as f:
     label_map = json.load(f)
 
-# Reverse mapping
 index_to_label = {v: k for k, v in label_map.items()}
-
 
 # =====================================================
 # TEXT PREDICTION
@@ -41,7 +42,7 @@ def predict_text_class(text):
         outputs = model(**inputs)
 
     logits = outputs.logits.squeeze()
-    probs = torch.softmax(logits, dim=0).numpy()
+    probs = torch.softmax(logits, dim=0).cpu().numpy()
 
     pred_index = int(np.argmax(probs))
     pred_label = index_to_label[pred_index]
@@ -51,7 +52,6 @@ def predict_text_class(text):
         "pred_index": pred_index,
         "pred_label": pred_label
     }
-
 
 # =====================================================
 # AUDIO RISK FROM PROSODY
@@ -68,7 +68,6 @@ def audio_risk_from_prosody(feats):
 
     final = 0.45 * pause_score + 0.35 * energy_score + 0.20 * onset_score
     return float(np.clip(final, 0, 1))
-
 
 # =====================================================
 # FUSION SCORE
@@ -88,7 +87,6 @@ def fuse_scores(text_out, audio_score=None):
         score = text_risk
 
     return float(score * 100)
-
 
 def risk_category(score):
     if score >= 80:
