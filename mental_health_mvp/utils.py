@@ -3,7 +3,7 @@ import json
 import numpy as np
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
-import feature_audio
+from mental_health_mvp import feature_audio
 
 # =====================================================
 # LOAD MODEL & LABEL MAP
